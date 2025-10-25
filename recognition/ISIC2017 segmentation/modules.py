@@ -84,9 +84,34 @@ class Unet(tf.keras.Model):
 
         return d1
     
-    
 
 
+class DiceLoss(tf.keras.losses.Loss):
+    """
+    Dice Loss = 1 - Dice Coefficient
+    Dice Coefficient = (2 * |X ∩ Y|) / (|X| + |Y|)
+    """
+
+    def __init__(self, smooth=1e-6):
+        super(DiceLoss, self).__init__()
+        self.smooth = smooth
+
+    def forward(self, predictions, targets):
+        """
+        Args:
+            predictions: Sigmoid output from model [B, H, W] (values between 0-1)
+            targets: Binary ground truth [B, H, W] (values 0 or 1)
+        """
+        # Flatten tensors using reshape to handle non-contiguous memory layout
+        predictions = predictions.reshape(-1)
+        targets = targets.reshape(-1).float()
+
+        # Calculate intersection and union
+        intersection = (predictions * targets).sum()
+        dice_coeff = (2.0 * intersection + self.smooth) / (predictions.sum() + targets.sum() + self.smooth)
+
+        # Return Dice Loss (1 - Dice Coefficient)
+        return 1 - dice_coeff
 
 
 
