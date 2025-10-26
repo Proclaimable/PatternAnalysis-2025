@@ -28,61 +28,77 @@ import umap
 IMAGE_SIZE = (256, 256)
 BATCH_SIZE = 3
 COLOR_MODE = "grayscale"
-LEAKY_RELU_ALPHA = 0.2
 
 class Unet(tf.keras.Model):
 
     # numbers inspired from unet segmentation code on google colab
-    def __init__(self, in_channels=3, out_channels=1, dropout_p=0.2):
+    def __init__(self, in_channels=3, out_channels=1, dropout_p=0.2, leaky_relu_alpha=0.2):
         
         super(Unet, self).__init__()
         self.upsample = layers.Conv2DTranspose(128, 3, strides=2, padding="same")
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.dropout_p = dropout_p
-    
+        self.leaky_relu_alpha = leaky_relu_alpha
 
-    def forward(self,x):
+    def cnn_Block(self, x, filters):
+        x = layers.Conv2D(filters, 3, padding="same")(x)
+        x = layers.LeakyReLU(alpha=self.leaky_relu_alpha)(x)
+        x = layers.Conv2D(filters, 3, padding="same")(x)
+        x = layers.LeakyReLU(alpha=self.leaky_relu_alpha)(x)
+        x = layers.Dropout(self.dropout_p)(x)
+        return x
+
+    def get_model(self):
         # Encoder
         # Architecture con2D -> LeakyReLU -> Dropout kernal of 3*3
         encoder_inputs = keras.Input(shape=(IMAGE_SIZE[0], IMAGE_SIZE[1], self.in_channels), batch_size=BATCH_SIZE)
-        e1 = layers.Conv2D(32, 3, strides=2, padding="same")(encoder_inputs)
-        e1 = layers.LeakyReLU(alpha=LEAKY_RELU_ALPHA)(e1)
-        e1 = layers.Dropout(self.dropout_p)(e1)
-        e1 = layers.MaxPool2D(2)(e1)
+        c1 = self.cnn_Block(encoder_inputs, 64)
+        e1 = layers.MaxPool2D(2)(c1)
 
-        e2 = layers.Conv2D(64, 3, strides=2, padding="same")(e1)
-        e2 = layers.LeakyReLU(alpha=LEAKY_RELU_ALPHA)(e2)
-        e2 = layers.Dropout(self.dropout_p)(e2)
-        e2 = layers.MaxPool2D(2)(e2)
+        c2 = self.cnn_Block(e1, 128)
+        e2 = layers.MaxPool2D(2)(c2)
 
-        e3 = layers.Conv2D(128, 3, strides=2, padding="same")(e2)
-        e3 = layers.LeakyReLU(alpha=LEAKY_RELU_ALPHA)(e3)
-        e3 = layers.Dropout(self.dropout_p)(e3)
+        c3 = self.cnn_Block(e2, 256)
+        e3 = layers.MaxPool2D(2)(c3)
 
-        e4 = layers.Conv2D(256, 3, strides=2, padding="same")(e3)
-        e4 = layers.LeakyReLU(alpha=LEAKY_RELU_ALPHA)(e4)
-        e4 = layers.Dropout(self.dropout_p)(e4)
-        e4 = layers.AvgPool2D(2)(e4)
+        c4 = self.cnn_Block(e3, 512)
+        e4 = layers.AvgPool2D(2)(c4)
+
+        bottleneck = self.cnn_Block(e4, 1024)
+
+        self.encoder = keras.Model(inputs=encoder_inputs, outputs=bottleneck, name="encoder")
+        self.encoder.summary()
 
 
         # Decoder
-        d4 = layers.UpSampling2D(interpolation="bilinear", size=2)(e4)
-        d4 = layers.Conv2D(128, 3, padding="same")(tf.concat([d4, e3], 1))
+        u4 = layers.Conv2DTranspose(512, 2, strides=2, padding="same")(bottleneck)
+        s4 = tf.concat([u4, c4], axis=-1)
+        d4 = self.cnn_Block(s4, 512)
         d4 = layers.Dropout(self.dropout_p)(d4)
 
-        d3 = layers.UpSampling2D(interpolation="bilinear", size=2)(d4)
-        d3 = layers.Conv2D(64, 3, padding="same")(tf.concat([d3, e2], 1))
+        d3 = layers.Conv2DTranspose(256, 2, strides=2, padding="same")(d4)
+        s3 = tf.concat([d3, c3], axis=-1)
+        d3 = self.cnn_Block(s3, 256)
         d3 = layers.Dropout(self.dropout_p)(d3)
 
-        d2 = layers.UpSampling2D(interpolation="bilinear", size=2)(d3)
-        d2 = layers.Conv2D(32, 3, padding="same")(tf.concat([d2, e1], 1))
+        d2 = layers.Conv2DTranspose(128, 2, strides=2, padding="same")(d3)
+        s2 = tf.concat([d2, c2], axis=-1)
+        d2 = self.cnn_Block(s2, 128)
         d2 = layers.Dropout(self.dropout_p)(d2)
 
+        d1 = layers.Conv2DTranspose(64, 2, strides=2, padding="same")(d2)
+        s1 = tf.concat([d1, c1], axis=-1)
+        d1 = self.cnn_Block(s1, 64)
+        d1 = layers.Dropout(self.dropout_p)(d1)
 
-        d1 = layers.Conv2D(self.out_channels, 1, padding="same")(d2) 
+        d1 = layers.Conv2D(self.out_channels, 1, padding="same")(d1)
+        self.decoder = keras.Model(inputs=e4, outputs=d1, name="decoder")
+        self.decoder.summary()
 
-        return d1
+        model = keras.Model(inputs=encoder_inputs, outputs=d1, name="unet")
+
+        return model
     
 
 
