@@ -33,7 +33,7 @@ from pathlib import Path
 # Constants
 # ----------------
 IMAGE_SIZE = (256, 256)
-BATCH_SIZE = 3
+BATCH_SIZE = 4
 COLOR_MODE = "grayscale"
 
 # ----------------
@@ -65,7 +65,7 @@ class SegmentationDataset():
             image_size=IMAGE_SIZE,
             batch_size=BATCH_SIZE,
             color_mode=COLOR_MODE,
-            shuffle=False
+            shuffle=False,
         )
         #normalize using image size 
         ds = ds.map(lambda x: x / 255.0, num_parallel_calls=tf.data.AUTOTUNE)

@@ -24,60 +24,64 @@ import numpy as np
 
 import train
 
-def denormalize_image_tf(img, mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)):
-                # img: tf.Tensor or numpy, either HWC or CHW. Returns HWC numpy array in [0,1].
-                img_tf = tf.convert_to_tensor(img, dtype=tf.float32)
-                # if CHW -> convert to HWC
-                if img_tf.shape.rank == 3 and img_tf.shape[0] == 3:
-                    img_tf = tf.transpose(img_tf, [1, 2, 0])
-                mean_t = tf.constant(mean, dtype=tf.float32)
-                std_t = tf.constant(std, dtype=tf.float32)
-                denorm = img_tf * std_t + mean_t
-                denorm = tf.clip_by_value(denorm, 0.0, 1.0)
-                return denorm.numpy()
+def denormalize_image_tf(image):
+    image = (image - tf.reduce_min(image)) / (tf.reduce_max(image) - tf.reduce_min(image) + 1e-8)
+    return image
 
-def show_predictions(model, dataset, title="🎯 Binary Segmentation Results (Normalized Color)", n=3):
+
+def show_predictions(model, paired_val, title="Binary Segmentation Results (Normalized Color)", n=3):
     """Show model predictions vs ground truth for normalized color-based binary segmentation."""
-    model.eval()
-    fig, axes = plt.subplots(3, n, figsize=(12, 9))
-    fig.suptitle(title, fontsize=16, fontweight='bold')
 
-    with tf.no_grad():
-        for i in range(n):
-            image, true_mask = dataset[i]
+    rows = 3
+    cols = n
+    fig, axes = plt.subplots(rows, cols, figsize=(4*cols, 4*rows))
+    fig.suptitle(title, fontsize=16)
 
-            # Predict with sigmoid model
-            pred = model(image.unsqueeze(0))
-            # Get pet class probability and convert to binary
-            pred_pet_prob = pred[0, 0].numpy()  # Pet class probability
-            pred_binary = (pred_pet_prob > 0.5).astype(int)  # Binary prediction
+    val_dataset_unzipped = paired_val.map(lambda x, y: x)
+    val_mask_dataset_unzipped = paired_val.map(lambda x, y: y)
+    i = 0 
 
-            # Denormalize image for visualization
-            # TensorFlow denormalize helper (place this above your function or in module scope)
-            
+    print(f"Validation dataset size: {len(val_dataset_unzipped)}, Mask dataset size: {len(val_mask_dataset_unzipped)}")
 
-            # Replacement for the $SELECTION_PLACEHOLDER$
-            img_show = denormalize_image_tf(image)
 
-            # Show original color image (transpose from CHW to HWC for matplotlib)
-            img_display = img_show.permute(1, 2, 0).numpy()  # CHW -> HWC
-            axes[0, i].imshow(img_display)
-            axes[0, i].set_title(f'Original {i+1}', fontweight='bold')
-            axes[0, i].axis('off')
+    for img_batch, mask_batch in zip(val_dataset_unzipped.take(3), val_mask_dataset_unzipped.take(3)):
+        print(img_batch.shape, mask_batch.shape)
 
-            # Show ground truth binary mask
-            axes[1, i].imshow(true_mask, cmap='RdYlBu_r', vmin=0, vmax=1)
-            axes[1, i].set_title(f'Ground Truth {i+1}', fontweight='bold')
-            axes[1, i].axis('off')
+        pred = model.predict(img_batch)
+        
 
-            # Show prediction
-            axes[2, i].imshow(pred_binary, cmap='RdYlBu_r', vmin=0, vmax=1)
-            accuracy = np.mean(pred_binary == true_mask.numpy())
-            axes[2, i].set_title(f'Prediction {i+1} (Acc: {accuracy:.2f})', fontweight='bold')
-            axes[2, i].axis('off')
+        img = img_batch[i]
+        mask = mask_batch[i]
+        pred = pred[i]
 
+        img = tf.squeeze(img, axis=-1)
+        mask = tf.squeeze(mask, axis=-1)
+        pred = tf.squeeze(pred, axis=-1)
+        
+        pred_binary = tf.cast(pred > 0.5, tf.float32)
+
+        img = denormalize_image_tf(img)
+        mask = denormalize_image_tf(mask)
+
+        axes[0, i].imshow(img, cmap='gray')
+        axes[0, i].set_title(f'Original {i+1}')
+        axes[0, i].axis('off')
+
+        axes[1, i].imshow(mask, cmap='gray')
+        axes[1, i].set_title(f'Mask {i+1}')
+        axes[1, i].axis('off')
+
+        axes[2, i].imshow(pred_binary, cmap='gray')
+        axes[2, i].set_title(f'Prediction {i+1}')
+        axes[2, i].axis('off')
+
+        i += 1
+        if i >= n:
+            break
     plt.tight_layout()
     plt.show()
+
+
 
 def plot_training_history(history):
         # Plot training & validation loss values
@@ -95,9 +99,10 @@ def plot_training_history(history):
 
 
 def main():
-    history, model, val_dataset = train.train()
+    history, model, paired_val = train.train(visualiseNum=None)
     plot_training_history(history)
-    show_predictions(model, val_dataset)
+    show_predictions(model, paired_val)
 
 
-    
+if __name__ == "__main__":
+    main()

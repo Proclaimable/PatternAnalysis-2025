@@ -113,7 +113,7 @@ class ShowPredictions(keras.callbacks.Callback):
 
     def on_epoch_end(self, epoch, logs=None):
 
-        if epoch % self.visualize_every != 0:
+        if self.visualize_every is None or epoch % self.visualize_every != 0:
             return
         
 

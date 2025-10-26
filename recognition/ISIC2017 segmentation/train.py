@@ -40,10 +40,10 @@ print(tf.config.list_physical_devices('GPU'))  # Available GPUs
 # Constants
 # ---------
 IMAGE_SIZE = (256, 256)
-BATCH_SIZE = 3
+BATCH_SIZE = 5
 COLOR_MODE = "grayscale"
 LEAKY_RELU_ALPHA = 0.2
-EPOCHS = 2
+EPOCHS = 100
 DROPOUT_P = 0.2
 LEARNING_RATE = 1e-4
 SEED = 42
@@ -53,7 +53,7 @@ tf.random.set_seed(SEED)
 # ------------
 # Loading Datasets
 # ------------
-def train():
+def train(visualiseNum = None):
     ISICdataset = dataset.SegmentationDataset("Dataset\ISIC-2017_Training_Data\Jpeg", split=0.8)
     train_dataset, val_dataset = ISICdataset.process_dataset("Dataset\ISIC-2017_Training_Data\Jpeg")
 
@@ -85,10 +85,10 @@ def train():
             epochs=EPOCHS,
             validation_data=paired_val,
             verbose=1,
-            callbacks=[modules.ShowPredictions(paired_val, n=3, visualize_every=1)]
+            #callbacks=[modules.ShowPredictions(paired_val, n=3, visualize_every=visualiseNum)]
         )
 
-    return history, model, val_dataset
+    return history, model, paired_val
 
 def main():
     train()
