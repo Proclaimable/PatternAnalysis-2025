@@ -63,7 +63,7 @@ class Unet(tf.keras.Model):
         e3 = layers.MaxPool2D(2)(c3)
 
         c4 = self.cnn_Block(e3, 512)
-        e4 = layers.AvgPool2D(2)(c4)
+        e4 = layers.MaxPool2D(2)(c4)
 
         bottleneck = self.cnn_Block(e4, 1024)
 
@@ -93,7 +93,8 @@ class Unet(tf.keras.Model):
         d1 = layers.Dropout(self.dropout_p)(d1)
 
         d1 = layers.Conv2D(self.out_channels, 1, padding="same")(d1)
-        self.decoder = keras.Model(inputs=e4, outputs=d1, name="decoder")
+        d1 = layers.LeakyReLU(alpha=self.leaky_relu_alpha)(d1)
+        self.decoder = keras.Model(inputs=e4, outputs=d1, name="decoder", final_activation=None)
         self.decoder.summary()
 
         model = keras.Model(inputs=encoder_inputs, outputs=d1, name="unet")

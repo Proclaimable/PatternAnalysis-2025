@@ -40,7 +40,7 @@ COLOR_MODE = "grayscale"
 # ----------------
 
 
-def preprocess_image(datadir, shuffle=False, datasplit=1):
+def preprocess_image(datadir, shuffle=False):
     
     # Load the image and process with image size batch size and grayscale
     ds = tf.keras.preprocessing.image_dataset_from_directory(
@@ -57,15 +57,13 @@ def preprocess_image(datadir, shuffle=False, datasplit=1):
     return ds
 
 
-def datasplit(dataset: tf.data.Dataset, train_ratio=0.8, val_ratio=0.1, test_ratio=0.1):
+def datasplit(dataset: tf.data.Dataset, train_ratio=0.8, test_ratio=0.2):
     train_size = int(len(dataset) * train_ratio)
-    val_size = int(len(dataset) * val_ratio)
     test_size = int(len(dataset) * test_ratio)
 
     train_dataset = dataset.take(train_size)
-    val_dataset = dataset.skip(train_size).take(val_size)
-    test_dataset = dataset.skip(train_size + val_size)
-    return train_dataset, val_dataset, test_dataset
+    test_dataset = dataset.skip(train_size)
+    return train_dataset, test_dataset
 
 def __getitem__(self, idx):
         # Get image and mask
