@@ -23,6 +23,7 @@ Notes:
 
 import numpy as np
 from matplotlib import transforms
+from sklearn.utils import shuffle
 import tensorflow as tf
 import keras 
 
@@ -40,46 +41,51 @@ COLOR_MODE = "grayscale"
 # ----------------
 
 
-def preprocess_image(datadir, shuffle=False):
+
+
+class SegmentationDataset():
+    def __init__(self, dataset, split):
+        self.dataset = dataset
+        self.split = split
+
+    def get_transform(self):
+        transform = transforms.Compose([
+            transforms.Grayscale(num_output_channels=1),
+            transforms.Resize((64, 64)),
+            transforms.ToTensor(),            # now produces shape [1,64,64] in [0,1]
+            transforms.Normalize(mean=[0.5], std=[0.5])  # single-channel normalization
+            ])
+        return transform
     
-    # Load the image and process with image size batch size and grayscale
-    ds = tf.keras.preprocessing.image_dataset_from_directory(
-        datadir,
-        labels=None,
-        image_size=IMAGE_SIZE,
-        batch_size=BATCH_SIZE,
-        color_mode=COLOR_MODE,
-        shuffle=shuffle
-    )
-    #normalize using image size 
-    ds = ds.map(lambda x: x / 255.0, num_parallel_calls=tf.data.AUTOTUNE)
-    ds = ds.prefetch(tf.data.AUTOTUNE)
-    return ds
+    def process_dataset(self, datadir):
+        # Load the image and process with image size batch size and grayscale
+        ds = tf.keras.preprocessing.image_dataset_from_directory(
+            datadir,
+            labels=None,
+            image_size=IMAGE_SIZE,
+            batch_size=BATCH_SIZE,
+            color_mode=COLOR_MODE,
+            shuffle=False
+        )
+        #normalize using image size 
+        ds = ds.map(lambda x: x / 255.0, num_parallel_calls=tf.data.AUTOTUNE)
+        ds = ds.prefetch(tf.data.AUTOTUNE)
+        train_dataset = ds.take(int(len(ds) * self.split))
+        val_dataset = ds.skip(int(len(ds) * self.split))
+        return train_dataset, val_dataset
+
+    def process_pair(self, images, masks):
+        masks = tf.cast(masks, tf.float32)
+        masks = tf.where(tf.equal(masks, 1), tf.ones_like(masks), tf.zeros_like(masks))
+        masks = tf.cast(masks, tf.float32)
+        return images, masks
 
 
-def datasplit(dataset: tf.data.Dataset, train_ratio=0.8, test_ratio=0.2):
-    train_size = int(len(dataset) * train_ratio)
-    test_size = int(len(dataset) * test_ratio)
+    def map_dataset(self, dataset):
+        return dataset.map(lambda images, masks: self.process_pair(images, masks), num_parallel_calls=tf.data.AUTOTUNE)
 
-    train_dataset = dataset.take(train_size)
-    test_dataset = dataset.skip(train_size)
-    return train_dataset, test_dataset
+    def shuffle_dataset(self, dataset):
+        return dataset.shuffle(buffer_size=1000)
 
-def __getitem__(self, idx):
-        # Get image and mask
-        image, mask = self.dataset[idx]
-        # Apply transforms to image
-        if self.transform:
-            image = self.transform(image)
-
-        mask = transforms.Resize(IMAGE_SIZE, interpolation=transforms.InterpolationMode.NEAREST)(mask)
-        mask_np = np.array(mask)  # Convert PIL to numpy array - this preserves [1,2,3]
-        binary_mask = np.zeros_like(mask_np, dtype=np.uint8)
-        binary_mask[mask_np == 1] = 1  # segmentation pixels = 1
-        binary_mask[mask_np == 2] = 0  # background pixels = 0
-        binary_mask[mask_np == 3] = 0  # border pixels -> background (no ignored pixels)
-
-        # Convert to tensor
-        binary_mask = tf.convert_to_tensor(binary_mask, dtype=tf.int64)
-
-        return image, binary_mask
+    def prefetch_dataset(self, dataset):
+        return dataset.prefetch(tf.data.AUTOTUNE)

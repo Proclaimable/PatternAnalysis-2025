@@ -16,23 +16,25 @@ Usage:
 Notes:
     - [Any special notes about the module, e.g., performance considerations]
 """
+from xml.parsers.expat import model
 import numpy as np
 import tensorflow as tf
 import keras
 from keras import layers
+import matplotlib.pyplot as plt
 import umap
 
 # ----------
 # Constants
 # ---------
 IMAGE_SIZE = (256, 256)
-BATCH_SIZE = 3
+BATCH_SIZE = 2
 COLOR_MODE = "grayscale"
 
 class Unet(tf.keras.Model):
 
     # numbers inspired from unet segmentation code on google colab
-    def __init__(self, in_channels=3, out_channels=1, dropout_p=0.2, leaky_relu_alpha=0.2):
+    def __init__(self, in_channels=1, out_channels=1, dropout_p=0.2, leaky_relu_alpha=0.2):
         
         super(Unet, self).__init__()
         self.upsample = layers.Conv2DTranspose(128, 3, strides=2, padding="same")
@@ -52,7 +54,7 @@ class Unet(tf.keras.Model):
     def get_model(self):
         # Encoder
         # Architecture con2D -> LeakyReLU -> Dropout kernal of 3*3
-        encoder_inputs = keras.Input(shape=(IMAGE_SIZE[0], IMAGE_SIZE[1], self.in_channels), batch_size=BATCH_SIZE)
+        encoder_inputs = keras.Input(shape=(IMAGE_SIZE[0], IMAGE_SIZE[1], self.in_channels))
         c1 = self.cnn_Block(encoder_inputs, 64)
         e1 = layers.MaxPool2D(2)(c1)
 
@@ -94,41 +96,67 @@ class Unet(tf.keras.Model):
 
         d1 = layers.Conv2D(self.out_channels, 1, padding="same")(d1)
         d1 = layers.LeakyReLU(alpha=self.leaky_relu_alpha)(d1)
-        self.decoder = keras.Model(inputs=e4, outputs=d1, name="decoder", final_activation=None)
-        self.decoder.summary()
 
         model = keras.Model(inputs=encoder_inputs, outputs=d1, name="unet")
+        model.summary()
+
 
         return model
-    
+
+
+class ShowPredictions(keras.callbacks.Callback):
+    def __init__(self, dataset, n=3, visualize_every=1):
+        self.dataset = dataset
+        self.n = n
+        self.visualize_every = visualize_every
+
+
+    def on_epoch_end(self, epoch, logs=None):
+
+        if epoch % self.visualize_every != 0:
+            return
+        
+
+        
+        imgs, masks = [], []
+
+        for img, mask in self.dataset.unbatch().take(self.n):
+            imgs.append(img)
+            masks.append(mask)
+
+
+        preds = self.model.predict(tf.stack(imgs), verbose=0)
+
+        for i in range(self.n):
+            plt.figure()
+            plt.imshow(imgs[i].numpy().squeeze(), cmap='gray')
+            plt.imshow(preds[i].squeeze(), cmap='jet', alpha=0.4)
+            plt.axis('off')
+            plt.show()
+
 
 
 class DiceLoss(tf.keras.losses.Loss):
-    """
-    Dice Loss = 1 - Dice Coefficient
-    Dice Coefficient = (2 * |X ∩ Y|) / (|X| + |Y|)
-    """
-
-    def __init__(self, smooth=1e-6):
-        super(DiceLoss, self).__init__()
+    def __init__(self, smooth=1e-6, from_logits=False, name="dice_loss"):
+        super(DiceLoss, self).__init__(name=name)
         self.smooth = smooth
+        self.from_logits = from_logits
 
-    def forward(self, predictions, targets):
-        """
-        Args:
-            predictions: Sigmoid output from model [B, H, W] (values between 0-1)
-            targets: Binary ground truth [B, H, W] (values 0 or 1)
-        """
-        # Flatten tensors using reshape to handle non-contiguous memory layout
-        predictions = predictions.reshape(-1)
-        targets = targets.reshape(-1).float()
+    def call(self, y_true, y_pred):
+        # ensure floats
+        y_true = tf.cast(y_true, tf.float32)
+        y_pred = tf.cast(y_pred, tf.float32)
 
-        # Calculate intersection and union
-        intersection = (predictions * targets).sum()
-        dice_coeff = (2.0 * intersection + self.smooth) / (predictions.sum() + targets.sum() + self.smooth)
+        if self.from_logits:
+            y_pred = tf.sigmoid(y_pred)
 
-        # Return Dice Loss (1 - Dice Coefficient)
-        return 1 - dice_coeff
+        y_true_f = tf.reshape(y_true, [-1])
+        y_pred_f = tf.reshape(y_pred, [-1])
+
+        intersection = tf.reduce_sum(y_true_f * y_pred_f)
+        dice_coeff = (2.0 * intersection + self.smooth) / (tf.reduce_sum(y_true_f) + tf.reduce_sum(y_pred_f) + self.smooth)
+        return 1.0 - dice_coeff
+
 
 
 
