@@ -34,7 +34,7 @@ from pathlib import Path
 # ----------------
 IMAGE_SIZE = (256, 256)
 BATCH_SIZE = 4
-COLOR_MODE = "grayscale"
+COLOR_MODE = "rgb"
 
 # ----------------
 # Functions
@@ -48,23 +48,15 @@ class SegmentationDataset():
         self.dataset = dataset
         self.split = split
 
-    def get_transform(self):
-        transform = transforms.Compose([
-            transforms.Grayscale(num_output_channels=1),
-            transforms.Resize((64, 64)),
-            transforms.ToTensor(),            # now produces shape [1,64,64] in [0,1]
-            transforms.Normalize(mean=[0.5], std=[0.5])  # single-channel normalization
-            ])
-        return transform
-    
-    def process_dataset(self, datadir):
-        # Load the image and process with image size batch size and grayscale
+
+    def process_dataset(self, datadir, color_mode=COLOR_MODE):
+        # Load the image and process with image size batch size and rgb
         ds = tf.keras.preprocessing.image_dataset_from_directory(
             datadir,
             labels=None,
             image_size=IMAGE_SIZE,
             batch_size=BATCH_SIZE,
-            color_mode=COLOR_MODE,
+            color_mode=color_mode,
             shuffle=False,
         )
         #normalize using image size 

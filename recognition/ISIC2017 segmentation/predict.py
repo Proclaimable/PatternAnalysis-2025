@@ -45,7 +45,6 @@ def show_predictions(model, paired_val, title="Binary Segmentation Results (Norm
 
 
     for img_batch, mask_batch in zip(val_dataset_unzipped.take(3), val_mask_dataset_unzipped.take(3)):
-        print(img_batch.shape, mask_batch.shape)
 
         pred = model.predict(img_batch)
         
@@ -54,7 +53,7 @@ def show_predictions(model, paired_val, title="Binary Segmentation Results (Norm
         mask = mask_batch[i]
         pred = pred[i]
 
-        img = tf.squeeze(img, axis=-1)
+
         mask = tf.squeeze(mask, axis=-1)
         pred = tf.squeeze(pred, axis=-1)
         
@@ -99,7 +98,8 @@ def plot_training_history(history):
 
 
 def main():
-    history, model, paired_val = train.train(visualiseNum=None)
+    
+    history, model, paired_val = train.train(visualiseNum=10, showExample=True)
     plot_training_history(history)
     show_predictions(model, paired_val)
 
