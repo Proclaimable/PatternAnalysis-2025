@@ -33,7 +33,7 @@ from pathlib import Path
 # Constants
 # ----------------
 IMAGE_SIZE = (256, 256)
-BATCH_SIZE = 4
+BATCH_SIZE = 5
 COLOR_MODE = "rgb"
 
 # ----------------
@@ -68,7 +68,7 @@ class SegmentationDataset():
 
     def process_pair(self, images, masks):
         masks = tf.cast(masks, tf.float32)
-        masks = tf.where(tf.equal(masks, 1), tf.ones_like(masks), tf.zeros_like(masks))
+        masks = masks = tf.where(masks > 127, 1.0, 0.0)
         masks = tf.cast(masks, tf.float32)
         return images, masks
 

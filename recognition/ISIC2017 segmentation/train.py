@@ -44,7 +44,7 @@ IMAGE_SIZE = (256, 256)
 
 COLOR_MODE = "grayscale"
 LEAKY_RELU_ALPHA = 0.2
-EPOCHS = 60
+EPOCHS = 150
 DROPOUT_P = 0.2
 LEARNING_RATE = 1e-4
 SEED = 42
@@ -85,15 +85,12 @@ def train(visualiseNum = None, showExample = False):
             plt.axis('off')
             plt.tight_layout()
             plt.show()
-        
-
-
 
     model = modules.Unet(base = 32).get_model()
 
     model.compile(
-        optimizer=keras.optimizers.Adam(LEARNING_RATE),
-        loss = modules.DiceLoss()
+        optimizer = tf.keras.optimizers.Adam(LEARNING_RATE),
+        loss = modules.DiceLossBCE()
     )
     
     history = model.fit(

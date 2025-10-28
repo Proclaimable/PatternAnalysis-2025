@@ -29,6 +29,24 @@ def denormalize_image_tf(image):
     return image
 
 
+def evaluate_val_dataset(model, paired_val):
+    val_count = tf.data.experimental.cardinality(paired_val).numpy()
+    if val_count == tf.data.UNKNOWN_CARDINALITY:
+        val_count = sum(1 for _ in paired_val)
+
+    images, masks = next(iter(paired_val.unbatch().batch(val_count)))
+    preds = model.predict(images, verbose=0)
+    preds_binary = tf.cast(preds > 0.5, tf.float32)
+
+    accuracy = tf.reduce_mean(tf.cast(tf.equal(preds_binary, masks), tf.float32))
+
+    intersection = tf.reduce_sum(preds_binary * masks)
+    union = tf.reduce_sum(preds_binary) + tf.reduce_sum(masks)
+    dice = (2.0 * intersection) / (union + 1e-7)
+
+    
+    return accuracy, dice
+
 def show_predictions(model, paired_val, title="Binary Segmentation Results (Normalized Color)", n=3):
     """Show model predictions vs ground truth for normalized color-based binary segmentation."""
 
@@ -79,6 +97,11 @@ def show_predictions(model, paired_val, title="Binary Segmentation Results (Norm
             break
     plt.tight_layout()
     plt.show()
+
+    dice, accuracy = evaluate_val_dataset(model, paired_val)
+
+    print(f"Validation (whole batch) — Dice: {dice:.4f}, Accuracy: {accuracy:.4f}")
+
 
 
 

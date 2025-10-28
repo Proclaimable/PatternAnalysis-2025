@@ -30,7 +30,7 @@ import os
 # Constants
 # ---------
 IMAGE_SIZE = (256, 256)
-BATCH_SIZE = 3
+BATCH_SIZE = 5
 COLOR_MODE = "rgb"
 
 class Unet(keras.Model):
