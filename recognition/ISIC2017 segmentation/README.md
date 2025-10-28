@@ -8,45 +8,40 @@ images) available on Rangpur with the 2D UNet [3] with all labels having a minim
 coefficient of 0.75 on the test set on the prostate label. You will need to load Nifti file format and sample
 code is provided in Appendix B. [Easy Difficulty]
 
-## Table of Contents
-1. hyperlink
-
-
 
 ## 1. Introduction
-This report is for the final submission of comp3710 corse and the aim to to experiment with training a unet model to segment medical images. The report is based of the learnings of the content within Comp3710. something about the results
+This report is for the final submission of comp3710 corse and the aim to to experiment with training a improved Unet model to segment medical images namily prostate cancer. The model uses the tensorflow kera modules as a backbone for the code. The report is based of the learnings of the content within Comp3710. The improved Unet model had an accuracy of 
 
-## 2. Project Structure
-1. “modules.py" containing the source code of the components of your model. Each component must be
-implementated as a class or a function
-2. “dataset.py" containing the data loader for loading and preprocessing your data
-3. “train.py" containing the source code for training, validating, testing and saving your model. The model
-should be imported from “modules.py” and the data loader should be imported from “dataset.py”. Make
-sure to plot the losses and metrics during training
-4. “predict.py" showing example usage of your trained model. Print out any results and / or provide visualisations where applicable
-5. “README.MD” to sufficiently document your project (see Section 6)
+## 2. Dependencies 
 
+- Python 3.10.18
+- tensorflow 2.18
+- numpy 2.0.2
+- tensorboard 2.18
+- keras 3.11.2
 
-## 3. Reproductibility might not need
+## 4. Model Architecture
+The model architechture was based of the Unet design provied by an article "Brain Tumor Segmentation and Radiomics Survival Prediction: Contribution to the BraTS 2017 Challenge" [1]. 
 
-## 4. Dependencies 
+![Improved_Unet](./Photos/Improved_Unet_model.png)
 
-Python 3.10.18
-tensorflow 2.18
-numpy 2.0.2
-tensorboard 2.18
-keras 3.11.2
+The project idea was taken from "U-Net: Convolutional Networks for Biomedical Image Segmentation"[2] article. This article completes a very similar challenge for medical imaging segmentationof Drosophila first instar larva ventral nerve cord. 
 
-## 5. AI type
-The model architechture was based of the Unet design provied by an article "U-Net: Convolutional Networks for Biomedical Image Segmentation" [1]. The model downsizes and upscales using 3x3 convlution with relu acitvation. It also uses skip connections in the upscaling segments outputing with a sigmoid activation to create a probabilitic mask. The loss funciton is dice loss using giving ground truths to reference as the true version. 
+![Unet_model](./Photos/Unet_model.png)
 
-![Prostate slice](./Photos/image.png)
+Code for the prediction, loss function and data loading were inspired by the pytorch code for Unet segmentation avaliable on google colab. [3] “3D Improved UNet for Prostate Segmentation
 
 
 
+## 5. Data Set
+The data set was provided by the ISIC 2017 challenge where they have multiple samples of skin melanoma and ground truths to match. This was used as a paired zip within the network so the loss funciton can evaluate the predictions. The data set is processed within dataset.py for where it 
+- normalises; averages the pixels the images by dividing by 255 to make it a [0,1] value
+- splits; creates a split for validation and training to test the model on unseen data
+- shuffles; improves generatation of the model as it randomises the order of each image in the dataset for each epoch
+- prefetches; loads the data early to reduce load time in later interations. 
 
-## 6. Data Set
-The data set was provided by the ISIC 2017 challenge where they have multiple samples of skin melanoma and ground truths to match. This was used as a paired zip within the network so the loss funciton can evaluate the predictions. The data set is processed within dataset.py for where it maps, splits, shuffles and prefetches. 
+
+## 6. Hyperparameters 
 
 ## 7. Training
 
@@ -58,15 +53,17 @@ how did you validate the model
 ## 9. Results
 graphs of the output
 
-## 10. Decussion 
+## 10. Decussion
 
 
 ## 11. References 
-[1] O. Ronneberger, P. Fischer, and T. Brox, “U-Net: Convolutional Networks for Biomedical Image Segmentation,” arXiv preprint arXiv:1505.04597v1, May 2015.
+[1] F. Isensee, P. Kickingereder, W. Wick, M. Bendszus, and K. H. Maier-Hein, “Brain Tumor Segmentation and Radiomics Survival Prediction: Contribution to the BraTS 2017 Challenge,” arXiv preprint arXiv:1802.10508v1, Feb. 2018.
 
-[3] Codella N, Gutman D, Celebi ME, Helba B, Marchetti MA, Dusza S, Kalloo A, Liopyris K, Mishra N, Kittler H, Halpern A. "Skin Lesion Analysis Toward Melanoma Detection: A Challenge at the 2017 International Symposium on Biomedical Imaging (ISBI), Hosted by the International Skin Imaging Collaboration (ISIC)". arXiv: 1710.05006 [cs.CV]
+[2] O. Ronneberger, P. Fischer, and T. Brox, “U-Net: Convolutional Networks for Biomedical Image Segmentation,” arXiv preprint arXiv:1505.04597v1, May 2015.
 
-F. Isensee, P. Kickingereder, W. Wick, M. Bendszus, and K. H. Maier-Hein, “Brain Tumor Segmentation and Radiomics — Survival Prediction: Contribution to the BRATS 2017 Challenge,” arXiv preprint arXiv:1802.10508v1, Feb. 2018.
+[3] X. Zhou, “3D Improved UNet for Prostate Segmentation,” Google Colab Notebook, Oct. 2025. Available: https://colab.research.google.com/drive/1VOsZSyRhyuHLmgoqGriQk01ub4bKNmZ1?usp=sharing
 
-google colab code for u net segmentation
-https://colab.research.google.com/drive/1VOsZSyRhyuHLmgoqGriQk01ub4bKNmZ1?usp=sharing#scrollTo=015bef18
+[4] Codella N, Gutman D, Celebi ME, Helba B, Marchetti MA, Dusza S, Kalloo A, Liopyris K, Mishra N, Kittler H, Halpern A. "Skin Lesion Analysis Toward Melanoma Detection: A Challenge at the 2017 International Symposium on Biomedical Imaging (ISBI), Hosted by the International Skin Imaging Collaboration (ISIC)". arXiv: 1710.05006 [cs.CV]
+
+[5] F. Isensee, P. Kickingereder, W. Wick, M. Bendszus, and K. H. Maier-Hein, “Brain Tumor Segmentation and Radiomics — Survival Prediction: Contribution to the BRATS 2017 Challenge,” arXiv preprint arXiv:1802.10508v1, Feb. 2018.
+
