@@ -14,6 +14,7 @@ code is provided in Appendix B. [Easy Difficulty]
 
 
 ## 1. Introduction
+This report is for the final submission of comp3710 corse and the aim to to experiment with training a unet model to segment medical images. The report is based of the learnings of the content within Comp3710. something about the results
 
 ## 2. Project Structure
 1. “modules.py" containing the source code of the components of your model. Each component must be
@@ -37,8 +38,15 @@ tensorboard 2.18
 keras 3.11.2
 
 ## 5. AI type
+The model architechture was based of the Unet design provied by an article "U-Net: Convolutional Networks for Biomedical Image Segmentation" [1]. The model downsizes and upscales using 3x3 convlution with relu acitvation. It also uses skip connections in the upscaling segments outputing with a sigmoid activation to create a probabilitic mask. The loss funciton is dice loss using giving ground truths to reference as the true version. 
+
+![Prostate slice](./Photos/image.png)
+
+
+
 
 ## 6. Data Set
+The data set was provided by the ISIC 2017 challenge where they have multiple samples of skin melanoma and ground truths to match. This was used as a paired zip within the network so the loss funciton can evaluate the predictions. The data set is processed within dataset.py for where it maps, splits, shuffles and prefetches. 
 
 ## 7. Training
 
@@ -54,15 +62,11 @@ graphs of the output
 
 
 ## 11. References 
-Unet for medical imaging 
-https://arxiv.org/pdf/1505.04597
+[1] O. Ronneberger, P. Fischer, and T. Brox, “U-Net: Convolutional Networks for Biomedical Image Segmentation,” arXiv preprint arXiv:1505.04597v1, May 2015.
 
-dataset:
-Codella N, Gutman D, Celebi ME, Helba B, Marchetti MA, Dusza S, Kalloo A, Liopyris K, Mishra N, Kittler H, Halpern A. "Skin Lesion Analysis Toward Melanoma Detection: A Challenge at the 2017 International Symposium on Biomedical Imaging (ISBI), Hosted by the International Skin Imaging Collaboration (ISIC)". arXiv: 1710.05006 [cs.CV]
+[3] Codella N, Gutman D, Celebi ME, Helba B, Marchetti MA, Dusza S, Kalloo A, Liopyris K, Mishra N, Kittler H, Halpern A. "Skin Lesion Analysis Toward Melanoma Detection: A Challenge at the 2017 International Symposium on Biomedical Imaging (ISBI), Hosted by the International Skin Imaging Collaboration (ISIC)". arXiv: 1710.05006 [cs.CV]
 
-
-Improved Unet Article
-https://arxiv.org/pdf/1802.10508v1
+F. Isensee, P. Kickingereder, W. Wick, M. Bendszus, and K. H. Maier-Hein, “Brain Tumor Segmentation and Radiomics — Survival Prediction: Contribution to the BRATS 2017 Challenge,” arXiv preprint arXiv:1802.10508v1, Feb. 2018.
 
 google colab code for u net segmentation
 https://colab.research.google.com/drive/1VOsZSyRhyuHLmgoqGriQk01ub4bKNmZ1?usp=sharing#scrollTo=015bef18
