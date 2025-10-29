@@ -2,27 +2,28 @@
 train.py
 
 Description:
-    This module contains various utility functions and helper classes
-    used for the [Project Name/Description]. It includes functions for
-    [list of core functionalities, e.g., data preprocessing, model training,
-    etc.]. The functions are modular and can be easily imported into other
-    parts of the project.
+    Training entrypoint and utilities for the Improved U-Net segmentation
+    project. Loads datasets, constructs the model, configures training
+    (optimizer, loss, callbacks) and provides a train(...) function that
+    returns (history, model, paired_val) for downstream evaluation and
+    visualization.
 
 Usage:
-    - Function 1: [Brief description of how to use]
-    - Function 2: [Brief description of how to use]
-    - Etc.
+    - train(visualiseNum=None, showExample=False):
+        Prepare datasets, compile the ImprovedUnet model, run model.fit and
+        return (history, model, paired_val).
+    - main():
+        Example CLI entrypoint that calls train().
 
 Notes:
-    - [Any special notes about the module, e.g., performance considerations]
+    - Expects dataset.SegmentationDataset helpers to provide train/val image
+    and mask tf.data.Datasets yielding batches shaped (B, H, W, C).
+    - Use tf.keras (TensorFlow's Keras) models/losses for dtype compatibility.
+    - Callback ShowPredictions saves example visuals; avoid blocking calls
+    (use plt.savefig + plt.close).
 """
-import numpy as np
 import tensorflow as tf
-import keras
-from keras import layers
-import umap
 import matplotlib.pyplot as plt
-import random
 
 
 import modules
@@ -44,22 +45,47 @@ IMAGE_SIZE = (256, 256)
 
 COLOR_MODE = "grayscale"
 LEAKY_RELU_ALPHA = 0.2
-EPOCHS = 150
+EPOCHS = 100
 DROPOUT_P = 0.2
 LEARNING_RATE = 1e-4
-SEED = 42
 SMOOTH = 1e-6
 
 # ------------
 # Loading Datasets
 # ------------
 def train(visualiseNum = None, showExample = False):
+    """
+    Prepare data, build and train the ImprovedUnet model.
+
+    Steps:
+    - Load images and masks using SegmentationDataset helpers.
+    - Pair, shuffle and prefetch training dataset.
+    - Build the model, compile with DiceLossBCE and Adam optimizer.
+    - Run model.fit with ShowPredictions callback.
+
+    Args:
+        visualiseNum (int or None): If set, passed to ShowPredictions.visualize_every
+            to control how often visuals are saved. None disables visualization.
+        showExample (bool): If True, display a few example image/mask pairs
+            from the training set before training (useful for debugging).
+
+    Returns:
+        tuple: (history, model, paired_val)
+            history: Keras History object from model.fit.
+            model: The trained Keras model.
+            paired_val: Validation dataset (tf.data.Dataset) used for validation/visualization.
+    """
+    # main training funciton
+
+
+    # loads the data set from preset folders using methods from dataset.py
     ISICdataset = dataset.SegmentationDataset("Dataset\ISIC-2017_Training_Data\Jpeg", split=0.8)
     train_dataset, val_dataset = ISICdataset.process_dataset("Dataset\ISIC-2017_Training_Data\Jpeg")
 
     ISICmaskdataset = dataset.SegmentationDataset("Dataset\ISIC-2017_Training_Part1_GroundTruth", split=0.8)
-    train_mask_dataset, val_mask_dataset = ISICmaskdataset.process_dataset("Dataset\ISIC-2017_Training_Part1_GroundTruth", color_mode="grayscale")
+    train_mask_dataset, val_mask_dataset = ISICmaskdataset.process_dataset_masks("Dataset\ISIC-2017_Training_Part1_GroundTruth", color_mode="grayscale")
 
+    # pairs the datasets into train mask pairs for the model to use as (x,y) comparisons
     paired_train = tf.data.Dataset.zip((train_dataset, train_mask_dataset))
     paired_train = paired_train.shuffle(buffer_size=1024)
     paired_train = paired_train.prefetch(buffer_size=tf.data.AUTOTUNE)
@@ -67,8 +93,10 @@ def train(visualiseNum = None, showExample = False):
     paired_val = tf.data.Dataset.zip((val_dataset, val_mask_dataset))
     paired_val = paired_val.prefetch(buffer_size=tf.data.AUTOTUNE)
 
+    
+
     if showExample == True:
-        
+        # Visualize some examples from the training set for debugging
         for img_batch, mask_batch in paired_train.take(3):
             img = img_batch[0].numpy()
             mask = mask_batch[0].numpy().squeeze()
@@ -86,13 +114,18 @@ def train(visualiseNum = None, showExample = False):
             plt.tight_layout()
             plt.show()
 
-    model = modules.Unet(base = 32).get_model()
+
+    # loads the model from modules.py base is the base number of filters
+    model = modules.ImprovedUnet(base = 32).get_model()
 
     model.compile(
+        # Uses Adam optimizer using hyperparameter as the learning rate and premade dicelossBCE function from modules.py
         optimizer = tf.keras.optimizers.Adam(LEARNING_RATE),
         loss = modules.DiceLossBCE()
     )
     
+    # main training loop using fit method from tensorflow keras
+    # importantly using the paired_train for training and paired_val for validation
     history = model.fit(
             paired_train,
             epochs=EPOCHS,
@@ -102,57 +135,11 @@ def train(visualiseNum = None, showExample = False):
             callbacks=[modules.ShowPredictions(paired_val, n=3, visualize_every=visualiseNum)]
         )
     
-    '''
-    history = model.fit(
-    paired_train.take(1).repeat(),
-    steps_per_epoch=5,
-    epochs=20,
-    verbose=1,
-    callbacks=[modules.ShowPredictions(paired_val, n=3, visualize_every=visualiseNum)]
-    )
     
-        imgs, masks = next(iter(paired_train.take(1)))
-        print(imgs.shape, masks.shape)
-
-        preds = model.predict(imgs)
-        print("Prediction shape:", preds.shape)
-            
-            # Pick the first sample
-        img = imgs[0].numpy()
-        mask = masks[0].numpy()
-        pred = preds[0]
-
-        # Squeeze to remove last channel if needed
-        mask = np.squeeze(mask)
-        pred = np.squeeze(pred)
-
-        # Threshold prediction to binary mask
-        pred_binary = (pred > 0.5).astype(float)
-
-        plt.figure(figsize=(12,4))
-        plt.subplot(1,3,1)
-        plt.imshow(img.squeeze(), cmap='gray' if img.shape[-1]==1 else None)
-        plt.title("Input Image")
-        plt.axis('off')
-
-        plt.subplot(1,3,2)
-        plt.imshow(mask, cmap='gray')
-        plt.title("Ground Truth")
-        plt.axis('off')
-
-        plt.subplot(1,3,3)
-        plt.imshow(pred_binary, cmap='gray')
-        plt.title("Predicted Mask")
-        plt.axis('off')
-
-        plt.tight_layout()
-        plt.show()
-
-'''
     return history, model, paired_val
 
 def main():
-    history, model, paired_val = train(visualiseNum=1, showExample=False)
+    history, model, paired_val = train(visualiseNum=1, showExample=True)
     
 
 
