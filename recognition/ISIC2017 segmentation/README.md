@@ -48,6 +48,20 @@ The project idea was taken from "U-Net: Convolutional Networks for Biomedical Im
 
 Code for the prediction, loss function and data loading were inspired by the pytorch code for Unet segmentation avaliable on google colab. [3] “3D Improved UNet for Prostate Segmentation
 
+### Loss Funtions
+**Dice Similarity Coefficient (DSC):**
+$$
+DSC = \frac{2|X \cap Y|}{|X| + |Y|}
+$$
+where X is the prediciton dataset and Y is the ground truths
+
+**Binary Cross-Entropy (BCE):**
+$$
+BCE = -\frac{1}{N} \sum_{i=1}^{N} \left[ y_i \log(p_i) + (1 - y_i) \log(1 - p_i) \right]
+$$
+where $yi$ is the ground truths and $pi$ is the prediction.
+
+
 
 
 ## 5. Data Set
@@ -93,7 +107,7 @@ example predictions from model
 
 <img src="Photos\Dice_Accuracy.png">
 
-Notably there were some outliers in the validation of the model which could stem from formating of the data when the accuracy is 0 in some cases or addition of extra white space in the masking for the accuracy of the 0.4 - 0.6 cases. However, the general accuracy of most cases were successful as seen in the mean statsistics. 
+Notably there were some outliers in the validation of the model which could stem from formating of the data when the accuracy is 0 in some cases or addition of extra white space in the masking for the accuracy of the 0.4 - 0.6 cases. However, the general accuracy of most cases were successful as seen in the mean statsistics. If it is not in the fault of processing the dataset. Training the model for longer or training with harder examples could resolve some of the outliers for the accuracy. 
 
 
 
