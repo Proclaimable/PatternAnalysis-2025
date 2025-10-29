@@ -13,7 +13,7 @@ code is provided in Appendix B. [Easy Difficulty]
 This report is for the final submission of COMP3710 course. The aim to to experiment with training a improved U-Net model to segment medical images, specifically prostate cancer. The model uses the tensorflow kera modules as a backbone for the code. The report is based of the learnings of the content within Comp3710. The improved U-Net model had an accuracy of 80% for 100 epochs. Note some problem solving and small suggestions were made with the help of chatGPT - 5 [8] notably with a suggestion to add the BCE loss module in. 
 
 ## 2. Dependencies 
-The user of the script requires to download cuda tool kit for their GPU through the nivdia site:https://developer.nvidia.com/cuda-downloads. The cuda must be at least version 12. This report used a 3070ti RTX GPU to train the model. 
+Dependencies required for running the code. This is based around the tensorflow version that works with the a cuda toolkit to detech a GPU
 
 
 | Package | Version |
@@ -24,8 +24,7 @@ The user of the script requires to download cuda tool kit for their GPU through 
 | NumPy | 1.23.5 |
 | TensorBoard | 2.10.1 |
 | Matplotlib | 3.9.2 |
-| CUDA Toolkit | 11.2.2 |
-| cuDNN | 8.1.0 |
+
 
 
 The user of the script requires to download cuda tool kit for their GPU through the nivdia site:https://developer.nvidia.com/cuda-downloads. The cuda must be at least version 12. This report used a 3070ti RTX GPU to train the model. 
@@ -50,16 +49,16 @@ Code for the prediction, loss function and data loading were inspired by the pyt
 
 ### Loss Funtions
 **Dice Similarity Coefficient (DSC):**
-$$
-DSC = \frac{2|X \cap Y|}{|X| + |Y|}
-$$
-where X is the prediciton dataset and Y is the ground truths
+
+`DSC = 2|X ∩ Y| / (|X| + |Y|)`
+
+    where X is the prediciton dataset and Y is the ground truths
 
 **Binary Cross-Entropy (BCE):**
-$$
-BCE = -\frac{1}{N} \sum_{i=1}^{N} \left[ y_i \log(p_i) + (1 - y_i) \log(1 - p_i) \right]
-$$
-where $yi$ is the ground truths and $pi$ is the prediction.
+
+`BCE = -(1/N) Σ [ y_i log(p_i) + (1 - y_i) log(1 - p_i) ]`
+
+where yi is the ground truths and pi is the prediction.
 
 
 
