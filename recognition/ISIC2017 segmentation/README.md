@@ -52,7 +52,7 @@ Code for the prediction, loss function and data loading were inspired by the pyt
 
 `DSC = 2|X ∩ Y| / (|X| + |Y|)`
 
-    where X is the prediciton dataset and Y is the ground truths
+where X is the prediciton dataset and Y is the ground truths
 
 **Binary Cross-Entropy (BCE):**
 
