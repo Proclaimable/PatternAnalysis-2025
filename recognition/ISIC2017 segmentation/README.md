@@ -1,4 +1,4 @@
-# COMP3710 Project: type of AI 
+# COMP3710 Project: Improved Unet Design
 #### Student: s48824150
 #### Name: Phoenix Macorkanis
 
@@ -10,16 +10,30 @@ code is provided in Appendix B. [Easy Difficulty]
 
 
 ## 1. Introduction
-This report is for the final submission of comp3710 corse and the aim to to experiment with training a improved Unet model to segment medical images namily prostate cancer. The model uses the tensorflow kera modules as a backbone for the code. The report is based of the learnings of the content within Comp3710. The improved Unet model had an accuracy of 
+This report is for the final submission of COMP3710 course. The aim to to experiment with training a improved U-Net model to segment medical images, specifically prostate cancer. The model uses the tensorflow kera modules as a backbone for the code. The report is based of the learnings of the content within Comp3710. The improved U-Net model had an accuracy of 80% for 100 epochs
 
 ## 2. Dependencies 
 The user of the script requires to download cuda tool kit for their GPU through the nivdia site:https://developer.nvidia.com/cuda-downloads. The cuda must be at least version 12. This report used a 3070ti RTX GPU to train the model. 
 
-- Python 3.10.18
-- tensorflow 2.18
-- numpy 2.0.2
-- tensorboard 2.18
-- keras 3.11.2
+
+| Package | Version |
+|--------|---------|
+| Python | 3.9.23 |
+| TensorFlow | 2.10.0 |
+| Keras | 2.10.0 |
+| NumPy | 1.23.5 |
+| TensorBoard | 2.10.1 |
+| Matplotlib | 3.9.2 |
+| CUDA Toolkit | 11.2.2 |
+| cuDNN | 8.1.0 |
+
+
+The user of the script requires to download cuda tool kit for their GPU through the nivdia site:https://developer.nvidia.com/cuda-downloads. The cuda must be at least version 12. This report used a 3070ti RTX GPU to train the model. 
+
+| Package | Version |
+|--------|---------|
+| CUDA Toolkit | 11.2.2 |
+| cuDNN | 8.1.0 |
 
 note for reproducing the code. Run the predict.py for full useage of all scripts
 
@@ -28,7 +42,7 @@ The model architechture was based of the Unet design provied by an article "Brai
 
 ![Improved_Unet](./Photos/Improved_Unet_model.png)
 
-The project idea was taken from "U-Net: Convolutional Networks for Biomedical Image Segmentation"[2] article. This article completes a very similar challenge for medical imaging segmentationof Drosophila first instar larva ventral nerve cord. 
+The project idea was taken from "U-Net: Convolutional Networks for Biomedical Image Segmentation"[2] article. This article completes a very similar challenge for medical imaging segmentation of Drosophila first instar larva ventral nerve cord. 
 
 ![Unet_model](./Photos/Unet_model.png)
 
