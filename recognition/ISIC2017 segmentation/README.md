@@ -103,3 +103,13 @@ The model performed increasing well taking a long time to produce any overfittin
 
 [7] M. Yeung, E. Sala, C.-B. Schönlieb and L. Rundo, “Unified Focal Loss: Generalising Dice and cross entropy-based losses to handle class imbalanced medical image segmentation,” Computerized Medical Imaging and Graphics, vol. 95, Art. no. 102026, 2022. DOI: 10.1016/j.compmedimag.2021.102026.
 
+## Extra photos for presentation
+Progress of training
+
+Examples of training at epoch 1,11,21,31
+
+<img src="Photos\epoch_1_sample.png">
+<img src="Photos\epoch_11_sample.png">
+<img src="Photos\epoch_21_sample.png">
+<img src="Photos\epoch_31_sample.png">
+
