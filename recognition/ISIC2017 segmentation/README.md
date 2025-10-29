@@ -5,12 +5,12 @@
 #### Description:
 Segment the HipMRI Study on Prostate Cancer (see Appendix for link) using the processed 2D slices (2D
 images) available on Rangpur with the 2D UNet [3] with all labels having a minimum Dice similarity
-coefficient of 0.75 on the test set on the prostate label. You will need to load Nifti file format and sample
+coefficient of 0.75 on the test set on the prostate label.
 code is provided in Appendix B. [Easy Difficulty]
 
 
 ## 1. Introduction
-This report is for the final submission of COMP3710 course. The aim to to experiment with training a improved U-Net model to segment medical images, specifically prostate cancer. The model uses the tensorflow kera modules as a backbone for the code. The report is based of the learnings of the content within Comp3710. The improved U-Net model had an accuracy of 80% for 100 epochs
+This report is for the final submission of COMP3710 course. The aim to to experiment with training a improved U-Net model to segment medical images, specifically prostate cancer. The model uses the tensorflow kera modules as a backbone for the code. The report is based of the learnings of the content within Comp3710. The improved U-Net model had an accuracy of 80% for 100 epochs. Note some problem solving and small suggestions were made with the help of chatGPT - 5 [8] notably with a suggestion to add the BCE loss module in. 
 
 ## 2. Dependencies 
 The user of the script requires to download cuda tool kit for their GPU through the nivdia site:https://developer.nvidia.com/cuda-downloads. The cuda must be at least version 12. This report used a 3070ti RTX GPU to train the model. 
@@ -130,6 +130,8 @@ The model performed increasing well taking a long time to produce any overfittin
 [6] Z. Y. Zheng, B. H. Tian, S. Yu, X. Yang, Q. Yu, J. Zhou, G. Jiang, Q. Zheng, J. Pu and L. Wang, “Adaptive boundary-enhanced Dice loss for image segmentation,” Biomedical Signal Processing and Control, vol. 106, Art. no. 107741, 2025. DOI: 10.1016/j.bspc.2025.107741.
 
 [7] M. Yeung, E. Sala, C.-B. Schönlieb and L. Rundo, “Unified Focal Loss: Generalising Dice and cross entropy-based losses to handle class imbalanced medical image segmentation,” Computerized Medical Imaging and Graphics, vol. 95, Art. no. 102026, 2022. DOI: 10.1016/j.compmedimag.2021.102026.
+
+[8] OpenAI, “ChatGPT (GPT-5),” OpenAI, San Francisco, CA, USA. Available: https://chat.openai.com/.
 
 ## Extra photos for presentation
 Progress of training
