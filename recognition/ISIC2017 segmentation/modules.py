@@ -331,6 +331,7 @@ class ShowPredictions(keras.callbacks.Callback):
 
 class DiceLossBCE(tf.keras.losses.Loss):
     # Note: ChatGPT suggested the binary cross-entropy but dice loss was decided because of its use in the google colab file
+    # no longer used for improved model as model allows for higher epochs and the BCE is worse at the higher epochs
     """
     Combined Dice loss and Binary Crossentropy.
 
