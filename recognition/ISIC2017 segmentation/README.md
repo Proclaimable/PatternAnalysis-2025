@@ -5,15 +5,15 @@
 #### Description:
 Segment the HipMRI Study on Prostate Cancer (see Appendix for link) using the processed 2D slices (2D
 images) available on Rangpur with the 2D UNet [3] with all labels having a minimum Dice similarity
-coefficient of 0.75 on the test set on the prostate label. You will need to load Nifti file format and sample
+coefficient of 0.75 on the test set on the prostate label.
 code is provided in Appendix B. [Easy Difficulty]
 
 
 ## 1. Introduction
-This report is for the final submission of COMP3710 course. The aim to to experiment with training a improved U-Net model to segment medical images, specifically prostate cancer. The model uses the tensorflow kera modules as a backbone for the code. The report is based of the learnings of the content within Comp3710. The improved U-Net model had an accuracy of 80% for 100 epochs
+This report is for the final submission of COMP3710 course. The aim to to experiment with training a improved U-Net model to segment medical images, specifically prostate cancer. The model uses the tensorflow kera modules as a backbone for the code. The report is based of the learnings of the content within Comp3710. The improved U-Net model had an accuracy of 80% for 100 epochs. Note some problem solving and small suggestions were made with the help of chatGPT - 5 [8] notably with a suggestion to add the BCE loss module in. 
 
 ## 2. Dependencies 
-The user of the script requires to download cuda tool kit for their GPU through the nivdia site:https://developer.nvidia.com/cuda-downloads. The cuda must be at least version 12. This report used a 3070ti RTX GPU to train the model. 
+Dependencies required for running the code. This is based around the tensorflow version that works with the a cuda toolkit to detech a GPU
 
 
 | Package | Version |
@@ -24,8 +24,7 @@ The user of the script requires to download cuda tool kit for their GPU through 
 | NumPy | 1.23.5 |
 | TensorBoard | 2.10.1 |
 | Matplotlib | 3.9.2 |
-| CUDA Toolkit | 11.2.2 |
-| cuDNN | 8.1.0 |
+
 
 
 The user of the script requires to download cuda tool kit for their GPU through the nivdia site:https://developer.nvidia.com/cuda-downloads. The cuda must be at least version 12. This report used a 3070ti RTX GPU to train the model. 
@@ -47,6 +46,20 @@ The project idea was taken from "U-Net: Convolutional Networks for Biomedical Im
 ![Unet_model](./Photos/Unet_model.png)
 
 Code for the prediction, loss function and data loading were inspired by the pytorch code for Unet segmentation avaliable on google colab. [3] “3D Improved UNet for Prostate Segmentation
+
+### Loss Funtions
+**Dice Similarity Coefficient (DSC):**
+
+`DSC = 2|X ∩ Y| / (|X| + |Y|)`
+
+where X is the prediciton dataset and Y is the ground truths
+
+**Binary Cross-Entropy (BCE):**
+
+`BCE = -(1/N) Σ [ y_i log(p_i) + (1 - y_i) log(1 - p_i) ]`
+
+where yi is the ground truths and pi is the prediction.
+
 
 
 
@@ -93,7 +106,7 @@ example predictions from model
 
 <img src="Photos\Dice_Accuracy.png">
 
-Notably there were some outliers in the validation of the model which could stem from formating of the data when the accuracy is 0 in some cases or addition of extra white space in the masking for the accuracy of the 0.4 - 0.6 cases. However, the general accuracy of most cases were successful as seen in the mean statsistics. 
+Notably there were some outliers in the validation of the model which could stem from formating of the data when the accuracy is 0 in some cases or addition of extra white space in the masking for the accuracy of the 0.4 - 0.6 cases. However, the general accuracy of most cases were successful as seen in the mean statsistics. If it is not in the fault of processing the dataset. Training the model for longer or training with harder examples could resolve some of the outliers for the accuracy. 
 
 
 
@@ -116,6 +129,8 @@ The model performed increasing well taking a long time to produce any overfittin
 [6] Z. Y. Zheng, B. H. Tian, S. Yu, X. Yang, Q. Yu, J. Zhou, G. Jiang, Q. Zheng, J. Pu and L. Wang, “Adaptive boundary-enhanced Dice loss for image segmentation,” Biomedical Signal Processing and Control, vol. 106, Art. no. 107741, 2025. DOI: 10.1016/j.bspc.2025.107741.
 
 [7] M. Yeung, E. Sala, C.-B. Schönlieb and L. Rundo, “Unified Focal Loss: Generalising Dice and cross entropy-based losses to handle class imbalanced medical image segmentation,” Computerized Medical Imaging and Graphics, vol. 95, Art. no. 102026, 2022. DOI: 10.1016/j.compmedimag.2021.102026.
+
+[8] OpenAI, “ChatGPT (GPT-5),” OpenAI, San Francisco, CA, USA. Available: https://chat.openai.com/.
 
 ## Extra photos for presentation
 Progress of training
