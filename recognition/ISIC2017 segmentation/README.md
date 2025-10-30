@@ -113,7 +113,7 @@ Final Prediction
 
 <img src="Photos\Dice_Accuracy2.png">
 
-
+The 2nd label was much harder to train as the mask shape is much more complex to get a high dice percentage. This also due to the dice percentage not taking the black space around the mask into factor making it favour larger masks. The improved U-Net does not show any sign of over fitting allowing training of up to 500 epochs.
 
 
 
