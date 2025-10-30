@@ -189,27 +189,17 @@ def plot_val_metrics(model, val_dataset, threshold=0.5):
         preds = model.predict(x_batch, verbose=0)
         y_true.append(y_batch.numpy())
         y_pred.append(preds)
+    print(f"shapes img:{x_batch.shape}, mask:{y_batch.shape}, pred:{preds.shape}")
     y_true = np.concatenate(y_true, axis=0)
     y_pred = np.concatenate(y_pred, axis=0)
     y_pred_bin = (y_pred > threshold).astype(np.float32)
 
-    acc = np.mean(y_true == y_pred_bin, axis=(1,2,3))
+    print(f"shapes true:{y_true.shape}, pred:{y_pred.shape}, pred_bin:{y_pred_bin.shape}")
+
     dice = (2 * np.sum(y_true * y_pred_bin, axis=(1,2,3))) / (
         np.sum(y_true, axis=(1,2,3)) + np.sum(y_pred_bin, axis=(1,2,3)) + 1e-7
     )
-
-    mean_acc = np.mean(acc)
     mean_dice = np.mean(dice)
-
-    plt.figure(figsize=(10,4))
-    plt.scatter(range(len(acc)), acc, alpha=0.7)
-    plt.axhline(mean_acc, color='r', linestyle='--')
-    plt.title(f'Pixelwise Accuracy per Image (Mean={mean_acc:.4f})')
-    plt.xlabel('Sample Index')
-    plt.ylabel('Pixelwise Accuracy')
-    plt.ylim(0, 1)
-    plt.grid(True)
-    plt.show()
 
     plt.figure(figsize=(10,4))
     plt.scatter(range(len(dice)), dice, alpha=0.7)
@@ -221,7 +211,6 @@ def plot_val_metrics(model, val_dataset, threshold=0.5):
     plt.grid(True)
     plt.show()
 
-    return mean_acc, mean_dice
 
 
 

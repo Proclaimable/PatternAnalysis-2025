@@ -297,7 +297,7 @@ class ShowPredictions(keras.callbacks.Callback):
         batch = next(iter(self.dataset.take(1)))
         img_batch, mask_batch = batch
         batch_size = img_batch.shape[0]
-        idx = np.random.randint(0, min(20, batch_size))
+        idx = 1     #np.random.randint(0, min(20, batch_size))
 
         preds = self.model.predict(img_batch, verbose=0)
         img = img_batch[idx].numpy()
@@ -402,20 +402,27 @@ class DiceLoss(tf.keras.losses.Loss):
 
     def call(self, y_true, y_pred):
         """
-        Compute Dice loss given ground truth and prediction.
+        Compute combined loss.
 
         Returns:
-            Tensor: scalar loss value (1 - dice_coefficient).
+            Tensor: scalar loss value (batch-averaged).
         """
+        # Dice loss + Binary Crossentropy
+        # Dice loss to compare areas 
+        # Binary crossentropy to increase the white pixels in the mask as disabling setting all pixels to black for high reward.
         y_true = tf.cast(y_true, tf.float32)
         y_pred = tf.cast(y_pred, tf.float32)
 
-        y_true_f = tf.reshape(y_true, [-1])
-        y_pred_f = tf.reshape(y_pred, [-1])
+        
+        inter = tf.reduce_sum(y_true * y_pred, axis=[1,2,3])
+        denom = tf.reduce_sum(y_true, axis=[1,2,3]) + tf.reduce_sum(y_pred, axis=[1,2,3])
+        dice = (2. * inter + self.smooth) / (denom + self.smooth)
+        dice_loss = 1. - dice
 
-        intersection = tf.reduce_sum(y_true_f * y_pred_f)
-        dice_coeff = (2.0 * intersection + self.smooth) / (tf.reduce_sum(y_true_f) + tf.reduce_sum(y_pred_f) + self.smooth)
-        return 1.0 - dice_coeff
+        # Print both for debugging
+        #tf.print(" BCE:", bce, "Dice:", tf.reduce_mean(dice_loss), summarize=5)
+
+        return tf.reduce_mean(dice_loss)
     
     def get_config(self):
         """

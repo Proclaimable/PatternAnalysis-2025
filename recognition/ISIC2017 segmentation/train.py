@@ -24,6 +24,7 @@ Notes:
 """
 import tensorflow as tf
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 import modules
@@ -45,8 +46,8 @@ IMAGE_SIZE = (256, 256)
 
 COLOR_MODE = "grayscale"
 LEAKY_RELU_ALPHA = 0.2
-EPOCHS = 100
-DROPOUT_P = 0.2
+EPOCHS = 300
+DROPOUT_P = 0.3
 LEARNING_RATE = 1e-4
 SMOOTH = 1e-6
 
@@ -79,11 +80,11 @@ def train(visualiseNum = None, showExample = False):
 
 
     # loads the data set from preset folders using methods from dataset.py
-    ISICdataset = dataset.SegmentationDataset("Dataset\ISIC-2017_Training_Data\Jpeg", split=0.8)
-    train_dataset, val_dataset = ISICdataset.process_dataset("Dataset\ISIC-2017_Training_Data\Jpeg")
+    ISICdataset = dataset.SegmentationDataset("Nifti files\Scan_images", split=0.8)
+    train_dataset, val_dataset = ISICdataset.process_dataset("Nifti files\Scan_images", color_mode="grayscale")
 
-    ISICmaskdataset = dataset.SegmentationDataset("Dataset\ISIC-2017_Training_Part1_GroundTruth", split=0.8)
-    train_mask_dataset, val_mask_dataset = ISICmaskdataset.process_dataset_masks("Dataset\ISIC-2017_Training_Part1_GroundTruth", color_mode="grayscale")
+    ISICmaskdataset = dataset.SegmentationDataset("Nifti files\Labels_images", split=0.8)
+    train_mask_dataset, val_mask_dataset = ISICmaskdataset.process_dataset_masks("Nifti files\Labels_images", color_mode="grayscale")
 
     # pairs the datasets into train mask pairs for the model to use as (x,y) comparisons
     paired_train = tf.data.Dataset.zip((train_dataset, train_mask_dataset))
@@ -93,11 +94,15 @@ def train(visualiseNum = None, showExample = False):
     paired_val = tf.data.Dataset.zip((val_dataset, val_mask_dataset))
     paired_val = paired_val.prefetch(buffer_size=tf.data.AUTOTUNE)
 
+    img_val, mask_val = next(iter(paired_val))
+    print(f"shapes img:{img_val.shape}, mask:{mask_val.shape}")
+
     
 
     if showExample == True:
         # Visualize some examples from the training set for debugging
         for img_batch, mask_batch in paired_train.take(3):
+            
             img = img_batch[0].numpy()
             mask = mask_batch[0].numpy().squeeze()
 
@@ -116,16 +121,18 @@ def train(visualiseNum = None, showExample = False):
 
 
     # loads the model from modules.py base is the base number of filters
-    model = modules.ImprovedUnet(base = 32).get_model()
+    model = modules.ImprovedUnet(in_channels=1, base = 32).get_model()
 
     model.compile(
         # Uses Adam optimizer using hyperparameter as the learning rate and premade dicelossBCE function from modules.py
         optimizer = tf.keras.optimizers.Adam(LEARNING_RATE),
-        loss = modules.DiceLossBCE()
+        loss = modules.DiceLoss()
     )
     
     # main training loop using fit method from tensorflow keras
     # importantly using the paired_train for training and paired_val for validation
+
+    
     history = model.fit(
             paired_train,
             epochs=EPOCHS,
@@ -135,6 +142,7 @@ def train(visualiseNum = None, showExample = False):
             callbacks=[modules.ShowPredictions(paired_val, n=3, visualize_every=visualiseNum)]
         )
     
+
     
     return history, model, paired_val
 
