@@ -3,9 +3,7 @@
 #### Name: Phoenix Macorkanis
 
 #### Description:
-Segment the HipMRI Study on Prostate Cancer (see Appendix for link) using the processed 2D slices (2D
-images) available on Rangpur with the 2D UNet with all labels having a minimum Dice similarity
-coefficient of 0.75 on the test set on the prostate label. You will need to load Nifti file format and sample
+Segment the HipMRI Study on Prostate Cancer (see Appendix for link) using the processed 2D slices (2D images) available on Rangpur with the 2D UNet with all labels having a minimum Dice similarity coefficient of 0.75 on the test set on the prostate label. You will need to load Nifti file format and sample
 code is provided in Appendix B. [Easy Difficulty]
 
 
@@ -78,6 +76,9 @@ BATCH_SIZE = 10
 ## 7. Training
 
 The model was trained using the ground truths to test the prediciton by the model during the epochs. The metric for evaluation was Dice Loss. Dice loss was the main metric as it compared the coverd areas of prediciton to the ground truth where coefficent = 1 would be a perfect coverage. [6] 
+
+### Dice Loss formula
+`DSC = 2|X ∩ Y| / (|X| + |Y|)`
 
 Examples of Training graph of the loss function over the epochs
 ### Label 1 Training
